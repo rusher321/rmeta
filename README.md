@@ -17,7 +17,7 @@ Usage
 Support & Bug Reports
 ----------------------
 
-Please log an issue on `github issue <https://github.com/rusher321/rmeta/issues>`_.
+Please log an issue on (github issue)[https://github.com/arpcard/rgi/issues]
 
 You can email the CARD curators or developers directly at `renhuahuid@genomics.cn`
 
