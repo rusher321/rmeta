@@ -1,0 +1,17 @@
+Package: rmeta
+Version: 0.0.0
+Date: 2019-07-28
+Title: the function for my daily work
+Author: Huahui Ren 
+Maintainer: Huahui Ren <renhuahui@genomics.cn>
+Depends:  R (>= 3.1.0)
+Imports:
+Suggests:
+Description: A demo R package for my daily work
+License: GPL
+URL: https://github.com/rusher321/shinyfunction.R
+BugReports: https://github.com/rusher321/shinyfunction.R/issues
+VignetteBuilder: knitr
+RoxygenNote: 6.0.1
+NeedsCompilation: no
+Packaged: 2017-05-15 09:53:27 UTC; pz

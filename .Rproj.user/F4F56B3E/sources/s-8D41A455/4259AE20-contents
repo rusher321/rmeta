@@ -1,0 +1,17 @@
+Package: rmickey
+Version: 0.0.0
+Date: 2017-05-15
+Title: Generage an new R package easily
+Author: Samwell Tarly
+Maintainer: Samwell Tarly <st@citadel.edu>
+Depends: R (>= 3.1.0)
+Imports:
+Suggests:
+Description: A demo R package for beginners to generate a new R package
+License: GPL
+URL: https://github.com/pzhao/rmickey
+BugReports: https://github.com/pzhao/rmickey/issues
+VignetteBuilder: knitr
+RoxygenNote: 6.0.1
+NeedsCompilation: no
+Packaged: 2017-05-15 09:53:27 UTC; pz
