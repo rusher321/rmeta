@@ -14,3 +14,12 @@ devtools::install_github('rusher321/rmeta')
 
 Usage
 -----
+Support & Bug Reports
+----------------------
+
+Please log an issue on `github issue <https://github.com/rusher321/rmeta/issues>`_.
+
+You can email the CARD curators or developers directly at `renhuahuid@genomics.cn`
+
+Requirements
+--------------------
