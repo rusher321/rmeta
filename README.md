@@ -1,5 +1,3 @@
-# rmeta
-collect the R function for daily work
 rmeta
 =======
 
