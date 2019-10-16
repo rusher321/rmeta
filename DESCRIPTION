@@ -5,13 +5,15 @@ Title: the function for my daily work
 Author: Huahui Ren 
 Maintainer: Huahui Ren <renhuahui@genomics.cn>
 Depends:  R (>= 3.1.0)
-Imports:
+Imports: 
+  ggplot2,
+  RColorBrewer
 Suggests:
-Description: A demo R package for my daily work
+Description: A R package for my daily work
 License: GPL
-URL: https://github.com/rusher321/shinyfunction.R
-BugReports: https://github.com/rusher321/shinyfunction.R/issues
+URL: https://github.com/rusher321/rmeta
+BugReports: https://github.com/rusher321/rmeta/issues
 VignetteBuilder: knitr
 RoxygenNote: 6.0.1
 NeedsCompilation: no
-Packaged: 2017-05-15 09:53:27 UTC; pz
+Packaged: 2019-10-16 09:53:27 UTC; pz
