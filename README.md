@@ -23,3 +23,15 @@ You can email the  developers directly at `renhuahuid@genomics.cn`
 
 Requirements
 --------------------
+
+## To do
+
+- figure part
+- statistics part
+  -- compare 
+
+# License
+
+Copyright 2019 [Huahui Ren](https://github.com/rusher32).
+
+Released under the MIT license.
