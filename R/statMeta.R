@@ -1,4 +1,5 @@
- ## stat for metagenome
+##### overview for data ##########
+
 #' JSD distance
 #' to compute the jsd distance
 #' @param inMatrix

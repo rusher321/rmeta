@@ -1,5 +1,5 @@
 Package: rmeta
-Version: 0.0.0
+Version: 0.0.1
 Date: 2019-07-28
 Title: the function for my daily work
 Author: Huahui Ren 
@@ -11,7 +11,9 @@ Imports:
   cluster,
   clusterSim,
   ggpubr,
-  vegan
+  vegan,
+  igraph,
+  Matrix
 Suggests:
 Description: A R package for my daily work
 License: GPL

@@ -1,5 +1,6 @@
 ## myfigure for metagenome
 
+
 #' plot volcano
 #' this function to plot volcano based ggplot2
 #' @param qdat include column name Fdr & fc
