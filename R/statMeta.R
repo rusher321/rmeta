@@ -184,3 +184,82 @@ multiAdonis <- function(dat, config, perm=999, method="bray"){
 
 }
 
+
+############# outlier ################
+
+#' checkOutlier
+#' output the outlier value on a vector by quantile
+#' @param x
+#' @param coef
+#' @param sname
+#' @param plot
+#' @param vname
+#'
+#' @return
+#' @export
+#'
+#' @examples
+checkOutlier <- function(x, coef = 2, sname ,plot = F, vname = "test"){
+
+  # whether is a conituous data
+  if(is.numeric(x) & length(levels(as.factor(x)))>=5){
+  # get the outlier index
+    x[is.na(x)] <- median(x, na.rm = T)
+    quantiles <- quantile(x, probs=c(0.25,0.75), na.rm = T)
+    IQR <- quantiles[2]-quantiles[1]
+    index <- x < (quantiles[1]-coef*IQR)|x > (quantiles[2]+coef*IQR)
+    if(any(index)){
+    # print the outlier
+    name <- paste0(sname[index], "_", round(x[index], 2))
+    res <-  paste(name, collapse = " ")
+
+    #return(res)
+   # print the outlier sample on boxplot
+    if(plot){
+       dat <- data.frame(value = x)
+       dat$label <- ifelse(index, sname, "")
+       dat$var <- rep(vname, nrow(dat))
+       ggplot(dat,aes(var,value))+
+         geom_boxplot()+geom_text(aes(label=label),hjust=-0.1)
+      }
+      return(res)
+    }else{
+      return(NULL)
+    }
+  }else{
+    stop("the value is not conituous data\n")
+  }
+
+}
+
+
+
+#' mutivarOutlier
+#' on a dataframe to select the outlier
+#' @param dat
+#' @param scale
+#' @param k
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
+mutivarOutlier <- function(dat, scale=F, k, ...){
+
+  if(scalue){
+    dat <- scale(dat)
+  }
+
+  sam_num <- nrow(dat)
+  row_name <- rownames(dat)
+
+  # library(DDoutlier)
+  outlier.scores <- LOF(dat, k = 10 )
+  checkOutlier(outlier.scores, ...)
+
+
+}
+
+
+

@@ -75,8 +75,6 @@ sparccNet <- function(dat, cutoff, main, layout = "layout.circle"){
 }
 
 
-
-
 #' pairNet
 #'
 #' @param Cor1 , corelation matrix 1
