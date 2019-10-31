@@ -13,7 +13,8 @@ Imports:
   ggpubr,
   vegan,
   igraph,
-  Matrix
+  Matrix,
+  metafor
 Suggests:
 Description: A R package for my daily work
 License: GPL

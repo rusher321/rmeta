@@ -194,4 +194,57 @@ nmdsFigEx <- function(data, method = "bray", config, color = c("#66C2A5","#E78AC
 }
 
 
+#' topTax
+#' plot the high abundance tax
+#' @param metadata , tax profile row is tax col is sample
+#' @param K , top number
+#' @param rmUnclass , if to remove the unclass tax
+#'
+#' @return figure
+#' @export
+#'
+#' @examples
+topTax <- function(metadata, K = 20, rmUnclass = F){
+
+  # generate the top20 tax profile
+  if(rmUnclass){
+    # rm the unclass & renorm
+    unclassindex <- which(rownames(metadata) %in% "unclassed")
+    metadata <- metadata[-unclassindex, ]
+    metadata <- apply(metadata, 2, function(x){y <- x/sum(x); return(y)})
+  }
+  # order the tax
+  top <- names(head(sort(apply(metadata , 1, mean), decreasing = T), K))
+  topdata <- metadata[top, ]
+  lessdata <- metadata[-which(rownames(metadata) %in% top), ]
+  otherdata <- t(data.frame(apply(lessdata, 2, sum)))
+  rownames(otherdata) <- "Others"
+  qdat <- rbind(topdata, otherdata)
+  # plot the result
+  naOrder <- rownames(qdat)
+  idOrder <- colnames(qdat)[order(qdat[1,], decreasing = T)]
+
+  qdat2 <- melt(qdat)
+  colnames(qdat2) <- c("Tax", "Sample", "value")
+  qdat2$Tax <- factor(qdat2$Tax, levels = rev(naOrder))
+  qdat2$Sample <- factor(qdat2$Sample, levels = idOrder)
+  # ggplot
+  ggplot(qdat2, aes(Sample, value, fill=Tax))+
+    geom_bar(stat = "identity")+
+    geom_hline(yintercept = 1)+
+    theme_classic()+
+    #mytheme+
+    theme(axis.text.x = element_blank(),
+          #legend.position = c(0.01,0.99),
+          #legend.justification = c(0,1),
+          axis.ticks = element_blank())+
+    xlab("")+ylab("Relative Abundance")+
+    scale_y_continuous(expand = c(0,0),breaks = c(0,.2,.4,.6,.8,1))
+
+}
+
+
+
+
+
 
