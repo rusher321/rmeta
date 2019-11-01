@@ -335,17 +335,23 @@ r2Towpartmodel <- function(dat , phe, response, cutoff, number=10, cutoffp=0.01,
     }
     # get the R square
     if(!is.null(confunder)){
+      # risk
       tmp <- phe[valiSampindex, c(response, confunder)]
       tmp$risk <- risk
       formula <- as.formula(paste0(response, "~."))
       lmmode <- summary(lm(formula, data = tmp))
 
+      # no risk
+      tmp2 <- tmp[,-ncol(tmp)]
+      formula2 <- as.formula(paste0(response, "~."))
+      lmmode2 <- summary(lm(formula2, data = tmp2))
+
+      R2[m] <- lmmode$adj.r.squared-lmmode2$adj.r.squared
+
     }else{
       lmmode <- summary(lm(valiPhe~risk))
+      R2[m] <- lmmode$adj.r.squared
     }
-
-    R2[m] <- lmmode$adj.r.squared
-
     }
     return(R2)
 
