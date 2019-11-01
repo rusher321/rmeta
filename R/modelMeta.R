@@ -283,7 +283,7 @@ twopartModel <- function(dat , phe, response, cutoff, number=10){
 #' @export
 #'
 #' @examples
-r2Towpartmodel <- function(dat , phe, response, cutoff, number=10, cutoffp=0.01, repeatN=100, confunder=F){
+r2Twopartmodel <- function(dat , phe, response, cutoff, number=10, cutoffp=0.01, repeatN=100, confounder=NULL){
     # match the sample ID
     id <- intersect(rownames(dat), rownames(phe))
     if(length(id)==0){
@@ -298,7 +298,7 @@ r2Towpartmodel <- function(dat , phe, response, cutoff, number=10, cutoffp=0.01,
      print(m)
     # split the data 80/20 percent , 80% is discovery data ,20% is validation data
     sampNum <- nrow(dat)
-    discSampindex <- sample(1:sampNum, size = round(sampNum*0.8), replace = NULL)
+    discSampindex <- sample(1:sampNum, size = round(sampNum*0.8), replace = F)
     valiSampindex <- c(1:sampNum)[-discSampindex]
 
     discDatax <- dat[discSampindex, ]
@@ -334,9 +334,9 @@ r2Towpartmodel <- function(dat , phe, response, cutoff, number=10, cutoffp=0.01,
       risk[i] <- sum(riskvalue)
     }
     # get the R square
-    if(!is.null(confunder)){
+    if(!is.null(confounder)){
       # risk
-      tmp <- phe[valiSampindex, c(response, confunder)]
+      tmp <- phe[valiSampindex, c(response, confounder)]
       tmp$risk <- risk
       formula <- as.formula(paste0(response, "~."))
       lmmode <- summary(lm(formula, data = tmp))
