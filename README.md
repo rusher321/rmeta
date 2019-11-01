@@ -28,10 +28,10 @@ Requirements
 
 - figure part [ongoing]
 - statistics part [ongoing]
-  -- compare between group (case/control, base/anti, composition data compare)
-  -- custom model 
-  -- network analysis
-- 想增加一个package,可以基于metaphaln2 和huamnn2 的数据出一个自动的报告
+  + compare between group (case/control, base/anti, composition data compare)
+  + custom model 
+  + network analysis
+- package,可以基于metaphaln2 和huamnn2 的数据出一个自动的报告
 
 # License
 
