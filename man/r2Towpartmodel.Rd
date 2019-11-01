@@ -5,7 +5,7 @@
 \title{r2Twopartmodel}
 \usage{
 r2Towpartmodel(dat, phe, response, cutoff, number = 10, cutoffp = 0.01,
-  repeatN = 100)
+  repeatN = 100, confunder = F)
 }
 \arguments{
 \item{dat}{, microbiome data row is sample id, col is variable}

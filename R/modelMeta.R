@@ -175,15 +175,15 @@ smoteMatch <- function(data, group){
 }
 
 
-#### form the fujingyuan #####
+#### from the fujingyuan #####
 #### two part explain model #######
 
 #' twopartModel
 #' From The Gut Microbiome Contributes to a Substantial Proportion of the Variation in Blood Lipids
 #' @param dat , microbiome data row is sample id, col is variable
 #' @param phe , metadata row is sample id ,col is variable
-#' @param response , the variable to expain
-#' @param cutoff , ensure  to detect or undetect
+#' @param response , the variable to explain
+#' @param cutoff , ensure to detect or undetect
 #' @param number , when sample number is limited , default 10
 #'
 #' @return dataframe
@@ -283,7 +283,7 @@ twopartModel <- function(dat , phe, response, cutoff, number=10){
 #' @export
 #'
 #' @examples
-r2Towpartmodel <- function(dat , phe, response, cutoff, number=10, cutoffp=0.01, repeatN=100){
+r2Towpartmodel <- function(dat , phe, response, cutoff, number=10, cutoffp=0.01, repeatN=100, confunder=F){
     # match the sample ID
     id <- intersect(rownames(dat), rownames(phe))
     if(length(id)==0){
@@ -298,7 +298,7 @@ r2Towpartmodel <- function(dat , phe, response, cutoff, number=10, cutoffp=0.01,
      print(m)
     # split the data 80/20 percent , 80% is discovery data ,20% is validation data
     sampNum <- nrow(dat)
-    discSampindex <- sample(1:sampNum, size = round(sampNum*0.8), replace = F)
+    discSampindex <- sample(1:sampNum, size = round(sampNum*0.8), replace = NULL)
     valiSampindex <- c(1:sampNum)[-discSampindex]
 
     discDatax <- dat[discSampindex, ]
@@ -334,7 +334,15 @@ r2Towpartmodel <- function(dat , phe, response, cutoff, number=10, cutoffp=0.01,
       risk[i] <- sum(riskvalue)
     }
     # get the R square
-    lmmode <- summary(lm(valiPhe~risk))
+    if(!is.null(confunder)){
+      tmp <- phe[valiSampindex, c(response, confunder)]
+      tmp$risk <- risk
+      formula <- as.formula(paste0(response, "~."))
+      lmmode <- summary(lm(formula, data = tmp))
+
+    }else{
+      lmmode <- summary(lm(valiPhe~risk))
+    }
 
     R2[m] <- lmmode$adj.r.squared
 

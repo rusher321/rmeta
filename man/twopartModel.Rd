@@ -12,9 +12,9 @@ twopartModel(dat, phe, response, cutoff, number = 10)
 
 \item{phe}{, metadata row is sample id ,col is variable}
 
-\item{response}{, the variable to expain}
+\item{response}{, the variable to explain}
 
-\item{cutoff}{, ensure  to detect or undetect}
+\item{cutoff}{, ensure to detect or undetect}
 
 \item{number}{, when sample number is limited , default 10}
 }
