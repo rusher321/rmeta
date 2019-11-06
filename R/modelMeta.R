@@ -295,7 +295,7 @@ r2Twopartmodel <- function(dat , phe, response, cutoff, number=10, cutoffp=0.01,
     R2 <- c()
 
     for(m in 1:repeatN){
-     print(m)
+    # print(m)
     # split the data 80/20 percent , 80% is discovery data ,20% is validation data
     sampNum <- nrow(dat)
     discSampindex <- sample(1:sampNum, size = round(sampNum*0.8), replace = F)
@@ -340,13 +340,16 @@ r2Twopartmodel <- function(dat , phe, response, cutoff, number=10, cutoffp=0.01,
       tmp$risk <- risk
       formula <- as.formula(paste0(response, "~."))
       lmmode <- summary(lm(formula, data = tmp))
-
+      #
       # no risk
       tmp2 <- tmp[,-ncol(tmp)]
       formula2 <- as.formula(paste0(response, "~."))
       lmmode2 <- summary(lm(formula2, data = tmp2))
 
-      R2[m] <- lmmode$adj.r.squared-lmmode2$adj.r.squared
+      #　from the rsq.partial in the rsq package
+      R2[m] <- 1-((1-lmmode$r.squared)/(1-lmmode2$r.squared))*(lmmode2$df[2]/lmmode$df[2])
+
+      #R2[m] <- lmmode$adj.r.squared-lmmode2$adj.r.squared
 
     }else{
       lmmode <- summary(lm(valiPhe~risk))
