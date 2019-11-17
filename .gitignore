@@ -47,4 +47,4 @@ Temporary Items
 .apdisk
 *.Rproj
 .Rproj.user/
-.Rproj.user
+.Rproj.user/*
