@@ -9,6 +9,9 @@ rmetaSMOTE(form, data, perc.over = 200, k = 5, learner = NULL, ...)
 \arguments{
 \item{...}{}
 }
+\value{
+
+}
 \description{
 rmetaSMOTE
 }

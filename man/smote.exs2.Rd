@@ -10,6 +10,9 @@ smote.exs2(data, tgt, N, k)
 \arguments{
 \item{k}{}
 }
+\value{
+
+}
 \description{
 smote.exs2
 this function from package DMwR smote.exs

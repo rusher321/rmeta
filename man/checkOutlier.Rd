@@ -10,6 +10,9 @@ checkOutlier(x, coef = 2, sname, plot = F, vname = "test")
 \arguments{
 \item{vname}{}
 }
+\value{
+
+}
 \description{
 checkOutlier
 output the outlier value on a vector by quantile

@@ -9,6 +9,9 @@ simplenet(adjmatrix, data, main, layout = "layout.circle")
 \arguments{
 \item{layout}{}
 }
+\value{
+
+}
 \description{
 simpleNet
 }

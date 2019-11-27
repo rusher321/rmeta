@@ -42,6 +42,42 @@ myvolcano <- function(qdat, fdcut){
 }
 
 
+volcanoEffect <- function(qdat, effvar, effcut, showlabel=F, labelsize=8, ymax=10){
+
+  # to generate the enrich
+  qdat$fc <- qdat[, effvar]
+  qdat$sig <- NA
+  qdat$sig[(qdat$Fdr > 0.05|qdat$Fdr=="NA")|(qdat$fc < effcut | qdat$fc > -effcut)] <- "no"
+  qdat$sig[qdat$Fdr <= 0.05 & qdat$fc >= effcut] <- "up"
+  qdat$sig[qdat$Fdr <= 0.05 & qdat$fc <= -effcut] <- "down"
+  qdat$label <- ifelse(qdat$sig!="no", qdat$label, "")
+
+  x_lim <- max(qdat$fc, -qdat$fc)
+  library(ggplot2)
+  library(RColorBrewer)
+
+  p <- ggplot(qdat, aes(fc, -1*log10(Fdr),
+                        color = sig))+geom_point(size = 1)+xlim(-x_lim,x_lim)+
+    labs(x="effect size", y="-log10(FDR)")
+
+  p <- p + scale_color_manual(values =c("#0072B5","grey","#BC3C28"))+
+    geom_hline(yintercept=-log10(0.05),linetype=4)+
+    geom_vline(xintercept=c(-effcut, effcut),linetype=4)
+  p <- p +theme(panel.grid =element_blank())+
+    theme(axis.line = element_line(size=0))+ylim(0,ymax)
+  if(showlabel){
+    p <- p + geom_text_repel(aes(fc, -1*log10(Fdr), label=label),size=labelsize)
+  }
+  p <- p + guides(colour = FALSE)
+  p <- p + theme_classic()
+  p <- p +facet_grid(.~clust)
+
+  return(p)
+
+}
+
+
+
 #' Multiplot
 #' this function to plot volcano based ggplot2
 #' @param ...
@@ -223,7 +259,7 @@ topTax <- function(metadata, K = 20, rmUnclass = F){
   # plot the result
   naOrder <- rownames(qdat)
   idOrder <- colnames(qdat)[order(qdat[1,], decreasing = T)]
-
+  qdat$sample <- rownames(qdat)
   qdat2 <- melt(qdat)
   colnames(qdat2) <- c("Tax", "Sample", "value")
   qdat2$Tax <- factor(qdat2$Tax, levels = rev(naOrder))

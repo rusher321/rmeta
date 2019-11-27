@@ -5,10 +5,13 @@
 \title{mutivarOutlier
 on a dataframe to select the outlier}
 \usage{
-mutivarOutlier(dat, scale = F, k, ...)
+mutivarOutlier(dat, scale = F, naaction = F, k, ...)
 }
 \arguments{
 \item{...}{}
+}
+\value{
+
 }
 \description{
 mutivarOutlier

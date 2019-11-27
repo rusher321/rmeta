@@ -9,6 +9,9 @@ kBest2(data, dist, method = "kmeans", clustNum)
 \arguments{
 \item{clustNum}{}
 }
+\value{
+
+}
 \description{
 kBest2
 }

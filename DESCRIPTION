@@ -14,13 +14,14 @@ Imports:
   vegan,
   igraph,
   Matrix,
-  metafor
+  metafor,
+  glmnet
 Suggests:
 Description: A R package for my daily work
 License: GPL
 URL: https://github.com/rusher321/rmeta
 BugReports: https://github.com/rusher321/rmeta/issues
 VignetteBuilder: knitr
-RoxygenNote: 6.1.1
+RoxygenNote: 7.0.0
 NeedsCompilation: no
 Packaged: 2019-10-16 09:53:27 UTC; pz

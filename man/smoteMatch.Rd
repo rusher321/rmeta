@@ -9,6 +9,9 @@ smoteMatch(data, group)
 \arguments{
 \item{group}{}
 }
+\value{
+
+}
 \description{
 smoteMatch
 }

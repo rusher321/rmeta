@@ -10,6 +10,9 @@ mergeP(dat1, dat2)
 \arguments{
 \item{by}{}
 }
+\value{
+
+}
 \description{
 mergeP
 merge two dataframe ,who have diffrent colname & diffrent rowname

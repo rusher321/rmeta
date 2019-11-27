@@ -10,6 +10,9 @@ multiplot(..., plotlist = NULL, file, cols = 1, layout = NULL)
 \arguments{
 \item{layout}{}
 }
+\value{
+
+}
 \description{
 Multiplot
 this function to plot volcano based ggplot2

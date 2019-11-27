@@ -319,16 +319,16 @@ r2Twopartmodel <- function(dat , phe, response, cutoff, number=10, cutoffp=0.01,
                    length(featurelist)))
     }
     # get the additive modele
-    twopartRes2 <- twopartRes[featurelist, ]
-    valiDatax2 <- valiDatax[, featurelist]
+    twopartRes2 <- twopartRes[featurelist, ,drop=F]
+    valiDatax2 <- valiDatax[, featurelist,drop=F]
     risk <- c()
     for(i in 1:nrow(valiDatax2)){
       riskvalue <- c()
       for(j in 1:ncol(valiDatax2)){
         beta1 <- twopartRes2[, 4]
         beta2 <- twopartRes2[, 8]
-        b <- ifelse(valiDatax2[i,j] < cutoff, 0, 1)
-        q <- ifelse(valiDatax2[i, j] < cutoff, 0, log10(valiDatax2[i,j]))
+        b <- ifelse(valiDatax2[i,j] <= cutoff, 0, 1)
+        q <- ifelse(valiDatax2[i, j] <= cutoff, 0, log10(valiDatax2[i,j]))
         riskvalue[j] <- beta1+b+beta2*q  # can't not ecsure why add b
       }
       risk[i] <- sum(riskvalue)
@@ -359,6 +359,383 @@ r2Twopartmodel <- function(dat , phe, response, cutoff, number=10, cutoffp=0.01,
     return(R2)
 
   }
+
+
+#' r2Twopartmodelcv
+#' add the cross validation process
+#' From The Gut Microbiome Contributes to a Substantial Proportion of the Variation in Blood Lipids
+#' @param dat , microbiome data row is sample id, col is variable
+#' @param phe , metadata row is sample id ,col is variable
+#' @param response , the variable to expain
+#' @param cutoff , ensure  to detect or undetect
+#' @param number , when sample number is limited , default 10
+#' @param cutoffp , significant feature
+#' @param repeatN , repeat number
+#' @param fold , cross validation fold
+#' @return vector
+#' @export
+#'
+#' @examples
+r2Twopartmodelcv <- function(dat , phe, response, cutoff, number=10, cutoffp=0.01, repeatN=100, fold,confounder=NULL){
+  # match the sample ID
+  id <- intersect(rownames(dat), rownames(phe))
+  if(length(id)==0){
+    stop("can't match the sample id")
+  }
+  dat <- dat[id, ]
+  phe <- phe[id, ]
+
+  R2 <- c()
+
+  for(m in 1:repeatN){
+    # print(m)
+    # cross vlidation
+    sampNum <- nrow(dat)
+    foldlist <- createFolds(1:sampNum, k = fold)
+    risk <- rep(NA, sampNum)
+
+    for(n in 1:fold){
+
+      discSampindex <- c(1:sampNum)[-foldlist[[n]]]
+      valiSampindex <- foldlist[[n]]
+
+      discDatax <- dat[discSampindex, ]
+      discPhe <- phe[discSampindex, ]
+      valiDatax <- dat[valiSampindex, ]
+      valiPhe <- phe[valiSampindex, response]
+
+    # twopart Model to get the effect size
+      twopartRes <- twopartModel(dat = discDatax, phe = discPhe, response = response,
+                               cutoff = cutoff, number = number)
+
+      featurelist <- rownames(twopartRes)[twopartRes[,15] <= cutoffp]
+    if(length(featurelist)==0){
+      risk[foldlist[[n]]] <- 0  # if no feature, the rish set zero
+      next
+      print(paste0("pvalue cutoff :", cutoffp, " can't get any feature"))
+    }else{
+      print(paste0("pvalue cutoff :", cutoffp, " get the significant feature ",
+                   length(featurelist)))
+    }
+    # get the additive modele
+    twopartRes2 <- twopartRes[featurelist, ,drop=F]
+    valiDatax2  <- valiDatax[, featurelist, drop=F]
+
+    for(i in 1:nrow(valiDatax2)){
+      riskvalue <- c()
+      for(j in 1:ncol(valiDatax2)){
+        beta1 <- twopartRes2[, 4]
+        beta2 <- twopartRes2[, 8]
+        b <- ifelse(valiDatax2[i, j] <= cutoff, 0, 1)
+        q <- ifelse(valiDatax2[i, j] <= cutoff, 0, log10(valiDatax2[i,j]))
+        riskvalue[j] <- beta1+b+beta2*q  # can't not ecsure why add b
+      }
+      risk[foldlist[[n]][i]] <- sum(riskvalue)
+      }
+    }
+
+    # get the R square
+    foldindex <- as.vector(unlist(foldlist))
+    if(!is.null(confounder)){
+      # risk
+
+      tmp <- phe[foldindex, c(response, confounder)]
+      tmp$risk <- risk
+      formula <- as.formula(paste0(response, "~."))
+      lmmode <- summary(lm(formula, data = tmp))
+
+      # no risk
+      tmp2 <- tmp[,-ncol(tmp)]
+      formula2 <- as.formula(paste0(response, "~."))
+      lmmode2 <- summary(lm(formula2, data = tmp2))
+
+      #　from the rsq.partial in the rsq package
+      R2[m] <- 1-((1-lmmode$r.squared)/(1-lmmode2$r.squared))*(lmmode2$df[2]/lmmode$df[2])
+
+      #R2[m] <- lmmode$adj.r.squared-lmmode2$adj.r.squared
+
+    }else{
+      y <- phe[foldindex, response]
+      print(y)
+      print(risk)
+      lmmode <- summary(lm(y~risk))
+      R2[m] <- lmmode$r.squared
+    }
+   }
+  return(R2)
+}
+
+
+#' CvLasso
+#' selsect feature on diffrent group
+#' @param metadata , response
+#' @param dataset , metabolism or microbe
+#' @param feturetop
+#'
+#' @return
+#' @export
+#'
+#' @examples
+CvLassomulti <- function(metadata , dataset, response, feturetop=NULL){
+  # combind data
+  id <- intersect(rownames(metadata), rownames(dataset))
+  print(paste0("the sample size is ", length(id)))
+  tmp <- dataset[id, ]
+
+
+  #　to tranform the data
+  #  inverse-quantile normalized
+  invt <- function(x){qnorm((rank(x,na.last="keep")-0.5)/sum(!is.na(x)))}
+  tmp2 <- as.data.frame(apply(tmp, 2, invt))
+  mdat <- data.frame(metadata[id, response] , tmp2)
+
+  # select feature
+  library(glmnet)
+  set.seed(123)
+  nlev <- length(levels(droplevels(as.factor(mdat[,1]))))
+  if(length(nlev)>2){
+    lasso <- cv.glmnet(x=as.matrix(mdat[,-1]),
+                       y=as.factor(mdat[,1]),
+                       family='multinomial',
+                       nfolds = 10,
+                       alpha = 1,
+                       nlambda = 100)
+  }else{
+    lasso <- cv.glmnet(x=as.matrix(mdat[,-1]),
+                       y=as.factor(mdat[,1]),
+                       family='binomial',
+                       nfolds = 10,
+                       alpha = 1,
+                       nlambda = 100)
+
+  }
+  library(dplyr)
+  library(tibble)
+  lasso.mk <- coef(lasso, lasso$lambda.min)
+
+  if(length(nlev)>2){
+    featurescore <- list()
+    for(i in 1:length(lasso.mk)){
+
+      featurescore[[i]]<- data.frame(as.matrix(lasso.mk[[i]])) %>% setNames("Score") %>%
+        rownames_to_column("Type") %>%
+        slice(-c(1:2)) %>%
+        filter(Score!=0) %>% mutate(dir = ifelse(Score >0 ,"pos", "neg")) %>%
+        arrange(abs(Score))
+
+    }
+
+    # get the max & min
+    minmax <- c()
+    for(i in 1:length(featurescore)){
+      tmpminmax <- c(max(featurescore[[i]][,2]), min(featurescore[[i]][,2]))
+      minmax <- c(minmax, tmpminmax)
+    }
+    xmin <- min(minmax)
+    xmax <- max(minmax)
+
+    # plot feature impotance
+
+    qplot <- function(qdat, top= T){
+
+      if(is.null(top)){
+        order_Type <- as.character(qdat$Type)
+        qdat$Type <- factor(qdat$Type, levels = order_Type)
+      }else{
+        qdat <- tail(qdat, 10)
+        qdat <- arrange(qdat, Score)
+        order_Type <- as.character(qdat$Type)
+        qdat$Type <- factor(qdat$Type, levels = order_Type)
+      }
+
+      qdat$dir <- factor(qdat$dir, levels = c("pos", "neg"))
+      p <- ggplot(qdat, aes(y=Type,x=Score,color=dir)) +
+        scale_x_continuous(limits =c(xmin,xmax)) +
+        geom_segment(xend=0,aes(yend=Type),size=5)  +
+        geom_vline(xintercept = 0) +
+        scale_color_manual(values = c("#ef3b2c", "#2171b5"))+
+        xlab("Coefficient estimate")+ylab("")+fontTheme+finalTheme
+
+
+      return(p)
+    }
+    qlist <- list()
+    for(i in 1:length(featurescore)){
+      qlist[[i]] <- qplot(featurescore[[i]])
+    }
+
+    out <- list(featurescore, qlist)
+  }else{
+    featurescore <- data.frame(as.matrix(lasso.mk)) %>% setNames("Score") %>%
+      rownames_to_column("Type") %>%
+      slice(-c(1:2)) %>%
+      filter(Score!=0) %>% mutate(dir = ifelse(Score >0 ,"pos", "neg")) %>%
+      arrange(abs(Score))
+    out <- featurescore
+
+
+  }
+  return(out)
+
+}
+
+
+#' CvLassoResponse
+#' select feature using lasso method , to continous data
+#' @param tag , reponse name
+#' @param dataset1 , phenotype or response dataset
+#' @param dataset2 ,
+#'
+#' @return
+#' @export
+#'
+#' @examples
+CvLassoResponse <- function(tag, dataset1, dataset2, transformM = "IQN"){
+  # combind data
+  id <- intersect(rownames(dataset1), rownames(dataset2))
+  print(paste0("the sample size is ", length(id)))
+  mdat <- data.frame(cbind(dataset1[id, tag, drop =F] , dataset2[id, ]))
+  # rm the na row
+  mdat <- mdat[!is.na(mdat[,1]), ]
+  if(nrow(dat) < 10){
+    return(NULL)
+  }else{
+
+  #　to tranform the data
+  #  inverse-quantile normalized
+  mdat2 <- as.data.frame(model.matrix(~., mdat))
+  if(transformM == "IQN"){
+    invt <- function(x){qnorm((rank(x,na.last="keep")-0.5)/sum(!is.na(x)))}
+    mdat3 <- as.data.frame(apply(mdat2, 2, invt))
+  }else if(transforM == "AST"){
+    AST <- function(x) {return(sign(x) * asin(sqrt(abs(x))))}
+    mdat3 <- as.data.frame(apply(mdat2, 2, AST))
+  }else{
+    mdat3 <- mdat2
+  }
+
+  # select feature
+  library(glmnet)
+  set.seed(123)
+  lasso <- cv.glmnet(x=as.matrix(mdat3[,-c(1:2)]),
+                     y=mdat3[,2],
+                     family='gaussian',
+                     nfolds = 10,
+                     alpha = 1,
+                     nlambda = 100)
+  library(dplyr)
+  library(tibble)
+  lasso.mk <- data.frame(as.matrix(coef(lasso, lasso$lambda.min))) %>%
+    setNames("Score") %>%
+    rownames_to_column("Type") %>%
+    slice(-c(1:2)) %>%
+    filter(Score!=0)
+  if(nrow(lasso.mk) == 0){
+    return(NULL)
+  }else{
+    data_all <- mdat3 %>% dplyr::select(tag, lasso.mk$Type)
+    # cross validation of feature
+    library(caret)
+    set.seed(123)
+    method <- "glm";
+    num <- nrow(data_all)
+    folds <- createFolds(y=data_all[,1], k=num )
+    colnames(data_all)[1] <- "y"
+    res <- data.frame()
+    for (i in 1:num) {
+      train_cv <- data_all[-folds[[i]], ]
+      test_cv <- data_all[folds[[i]], ]
+      if(method=="glm"){
+        fit <- glm(y~., data=train_cv, family = "gaussian")
+      } else if(method=="rf"){
+        library(randomForest)
+        fit <- randomForest(y~., data = train_cv, mtry=3, importance=T)
+      } else if(method=="gbm"){
+        library(gbm)
+        fit <- gbm(y~., data = train_cv,
+                   distribution = "gaussian",
+                   n.trees = 1000,
+                   shrinkage = 0.01,
+                   n.minobsinnode = 1,
+                   bag.fraction = 1,
+                   interaction.depth = 8,
+                   cv.folds = 5)
+      }
+      pred <- predict(fit, test_cv) %>% data.frame()
+      pred_res <- cbind(test_cv$y, pred) %>%
+        setNames(c("True", "Predict"))
+      res <- rbind(res, pred_res)
+    }
+    return(list(res, lasso.mk))
+  }
+  }
+}
+
+
+# summary the result
+
+summary_pred <- function(response, datalist, dataname, responsename, plotname){
+  # need the libray
+  library(reshape)
+  library(pheatmap)
+  library(glmnet)
+
+  # generate the result
+  out <- data.frame(True = 1, Predict = 1, type1 = "", type2 = "")
+  out2 <- data.frame(Type = "", Score = 1, type1 = "", type2 = "")
+
+  Rresult <- matrix(NA, nrow=length(responsename), ncol=length(datalist))
+  colnames(Rresult) <-  dataname
+  rownames(Rresult) <- responsename
+
+  for(i in 1:length(responsename)){
+    for(j in 1:length(dataname)){
+      print(j)
+      res <- CvLassoCluster(responsename[i], dataset1 = response, dataset2 = datalist[[j]])
+      if(is.null(res)){
+        next
+        Rresult[i, j] <- NA
+      }else{
+        res[[1]]$type1 <- rep(responsename[i], nrow(res[[1]]))
+        res[[1]]$type2 <- rep(dataname[j], nrow(res[[1]]))
+        res[[2]]$type1 <- rep(responsename[i], nrow(res[[2]]))
+        res[[2]]$type2 <- rep(dataname[j], nrow(res[[2]]))
+        Rresult[i, j] <- cor.test(res[[1]][,1], res[[1]][,2], method="s")$estimate
+        out <- rbind(out, res[[1]])
+        out2 <- rbind(out2, res[[2]])
+      }
+    }
+  }
+
+
+  # plot the result
+  feature_plot <- out2[-1, ]
+  recast(feature_plot, Type+type2~type1) -> qdat
+  annotation_row <- as.data.frame(qdat[, "type2", drop = F])
+  rownames(annotation_row) <- paste0("test", 1:nrow(annotation_row))
+  qdat2 <- qdat[, 3:10]
+  rownames(qdat2) <- rownames(annotation_row)
+  qdat2[is.na(qdat2)] <- 0
+  qdat2[qdat2<0] <- -1
+  qdat2[qdat2>0] <- 1
+
+  # remove the only once
+  index <- apply(abs(qdat2), 1, function(x){sum(x)>=2})
+  annotation_row <- annotation_row[index,, drop=F]
+  qdat3 <- as.data.frame(qdat2[index, ])
+
+  pdf(paste0(plotname, ".feature.lasso.pdf"), width = 20, height = 12)
+  pheatmap(t(qdat3), labels_col  = qdat$Type[index], cellheight = 8 , cellwidth = 8,legend = F,
+           annotation_col = annotation_row)
+  dev.off()
+
+  return(Rresult)
+}
+
+
+
+
+
 
 
 

@@ -11,7 +11,7 @@
 splitMetaphlan2 <- function(data, prefix){
 
   # this function use to split the metaphlan2 data
-  index <- sapply(strsplit(rownames(df), perl = T, split = "\\|"), length)
+  index <- sapply(strsplit(rownames(data), perl = T, split = "\\|"), length)
   maxrank <- max(index)
 
   datalist <- list()

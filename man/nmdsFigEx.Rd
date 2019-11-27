@@ -5,11 +5,13 @@
 \title{nmdsFigEx
 plot the nmds figure}
 \usage{
-nmdsFigEx(data, method = "bray", config, color = c("#66C2A5",
-  "#E78AC3"))
+nmdsFigEx(data, method = "bray", config, color = c("#66C2A5", "#E78AC3"))
 }
 \arguments{
 \item{color}{}
+}
+\value{
+
 }
 \description{
 nmdsFigEx

@@ -199,38 +199,40 @@ multiAdonis <- function(dat, config, perm=999, method="bray"){
 #' @export
 #'
 #' @examples
-checkOutlier <- function(x, coef = 2, sname ,plot = F, vname = "test"){
+  checkOutlier <- function(x, coef = 2, sname ,plot = F, vname = "test"){
 
-  # whether is a conituous data
-  if(is.numeric(x) & length(levels(as.factor(x)))>=5){
-  # get the outlier index
-    x[is.na(x)] <- median(x, na.rm = T)
-    quantiles <- quantile(x, probs=c(0.25,0.75), na.rm = T)
-    IQR <- quantiles[2]-quantiles[1]
-    index <- x < (quantiles[1]-coef*IQR)|x > (quantiles[2]+coef*IQR)
-    if(any(index)){
-    # print the outlier
-    name <- paste0(sname[index], "_", round(x[index], 2))
-    res <-  paste(name, collapse = " ")
+    # whether is a conituous data
+    if(is.numeric(x) & length(levels(as.factor(x)))>=5){
+    # get the outlier index
+      x[is.na(x)] <- median(x, na.rm = T)
+      quantiles <- quantile(x, probs=c(0.25,0.75), na.rm = T)
+      IQR <- quantiles[2]-quantiles[1]
+      index <- x < (quantiles[1]-coef*IQR)|x > (quantiles[2]+coef*IQR)
+      if(any(index)){
+      # print the outlier
+      name <- paste0(sname[index], "_", round(x[index], 2))
+      res <-  paste(name, collapse = " ")
 
-    #return(res)
-   # print the outlier sample on boxplot
-    if(plot){
-       dat <- data.frame(value = x)
-       dat$label <- ifelse(index, sname, "")
-       dat$var <- rep(vname, nrow(dat))
-       ggplot(dat,aes(var,value))+
-         geom_boxplot()+geom_text(aes(label=label),hjust=-0.1)
+      #return(res)
+     # print the outlier sample on boxplot
+      if(plot){
+         dat <- data.frame(value = x)
+         dat$label <- ifelse(index, sname, "")
+         dat$var <- rep(vname, nrow(dat))
+         p <- ggplot(dat,aes(var,value))+
+           geom_boxplot()+geom_text_repel(aes(label=label))+
+           theme(panel.grid.major=element_line(colour=NA))+labs(x="")+
+           theme_bw()
+        }
+        return(list(p,res))
+      }else{
+        return(NULL)
       }
-      return(res)
     }else{
-      return(NULL)
+      stop("the value is not conituous data\n")
     }
-  }else{
-    stop("the value is not conituous data\n")
-  }
 
-}
+  }
 
 
 
@@ -245,20 +247,50 @@ checkOutlier <- function(x, coef = 2, sname ,plot = F, vname = "test"){
 #' @export
 #'
 #' @examples
-mutivarOutlier <- function(dat, scale=F, k, ...){
+mutivarOutlier <- function(dat, scale=F, naaction = F, k, ...){
 
-  if(scalue){
+  if(scale){
     dat <- scale(dat)
   }
 
   sam_num <- nrow(dat)
   row_name <- rownames(dat)
+  # to handle the NA
 
+  if(naaction){
+    dat <- mice::complete(mice::mice(dat))
+  }
   # library(DDoutlier)
   outlier.scores <- LOF(dat, k = 10 )
   checkOutlier(outlier.scores, ...)
+}
 
 
+
+#' filterPer
+#'
+#' @param x , data.frame
+#' @param row , row or col
+#' @param percent , ratio
+#' @param include , belong or exclude
+#'
+#' @return dataframe
+#' @export
+#'
+#' @examples
+filterPer <- function(x, row, percent, include=T){
+
+  if(include){
+    index <-  apply(x, row, function(x){(sum(x!=0)/length(x))>percent})
+  }else{
+    index <-  apply(x, row, function(x){(sum(x!=0)/length(x))<percent})
+  }
+  if(row==1){
+    out <- x[index, ]
+  }else{
+    out <- x[, index]
+  }
+  return(out)
 }
 
 

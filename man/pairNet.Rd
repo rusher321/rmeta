@@ -15,6 +15,9 @@ pairNet(Cor1, Cor2, cutoff, species)
 
 \item{species, }{retain the species}
 }
+\value{
+
+}
 \description{
 pairNet
 }
