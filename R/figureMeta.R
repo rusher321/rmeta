@@ -1,5 +1,23 @@
-## myfigure for metagenome
+## figure for metagenome
+mytheme <- function(tmp){
 
+  finalTheme <- theme_set(theme_bw()) +
+        theme(panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        panel.border = element_blank()
+        )
+
+  fontTheme <- theme(
+    axis.title=element_text(size=14, face = "bold", colour = "black"),
+    text=element_text(size=12),
+    legend.text = element_text(size = 12, colour = "black"),
+    axis.text = element_text(size = 12, colour = "black"),
+    plot.title = element_text(size = 14, face = "bold", colour = "black"),
+    legend.title = element_text(size = 14, face = "bold", colour = "black"),
+    strip.text = element_text(face = "bold", size = 14)
+  )
+
+}
 
 #' plot volcano
 #' this function to plot volcano based ggplot2
@@ -278,6 +296,90 @@ topTax <- function(metadata, K = 20, rmUnclass = F){
     scale_y_continuous(expand = c(0,0),breaks = c(0,.2,.4,.6,.8,1))
 
 }
+
+
+
+########## corplot ###############
+
+
+
+#' corPlot
+#' pheatmap to figure the correlation
+#' @param corres
+#' @param cutoff
+#' @param adjust
+#' @param tr
+#'
+#' @return
+#' @export
+#'
+#' @examples
+corPlot <- function(corres , cutoff, adjust, tr){
+
+
+  #　sub function
+  trans <- function(x){
+    if(x <= 0.05 & x>0.01){
+      out <-"*"
+    }else if(x <= 0.01 & x>0.001){
+      out <- "**"
+    }else if(x <= 0.001){
+      out<- "***"
+    }else{
+      out <- " "
+    }
+    return(out)
+  }
+  #  ready the data
+  xname <- rownames(corres)
+  corres <- apply(corres, 2, as.numeric)
+  sp.corr.t <- corres
+  rownames(sp.corr.t) <- xname
+  # split the dataset
+  index <- 2*c(1:(ncol(sp.corr.t)/2))
+  dat.pvalue <- sp.corr.t[, index]
+  dat.cor <- sp.corr.t[, -index]
+  colnames(dat.cor) <- gsub("_p.value", "", colnames(dat.pvalue))
+  # adjust
+  if(adjust){
+    dat.pvalue <- matrix(p.adjust(as.vector(as.matrix(dat.pvalue)),method = "BH"),
+                         nrow = nrow(dat.pvalue))
+  }
+  pvalue.index <- apply(dat.pvalue, 2, function(x) any(x < cutoff))
+  pvalue.index2 <- apply(dat.pvalue, 1, function(x) any(x < cutoff))
+  dat.cor.cle <- dat.cor[pvalue.index2, pvalue.index]
+  dat.pva.cle <- dat.pvalue[pvalue.index2, pvalue.index]
+  num<- matrix(NA,nrow = nrow(dat.pva.cle), ncol = ncol(dat.pva.cle))
+
+  for(i in 1:ncol(dat.pva.cle)){
+    num[,i] <- mapply(trans, dat.pva.cle[,i])
+  }
+  colt<-c("#4C38CB","#9191C8","#DADAEC","#F0C1C1","#E28383","#D44545","#CD2626")
+
+  if(tr){
+    dat.cor.cle <- t(dat.cor.cle)
+    num <- t(num)
+  }
+  pheatmap(dat.cor.cle,
+           treeheight_row=43,
+           treeheight_col=23,
+           cellwidth=20,
+           cellheight=8,
+           cluster_cols=T,
+           cluster_rows=T,
+           fontsize_row=8,
+           fontsize_col=13,
+           show_colnames=T,
+           display_numbers=num,
+           color =colt,
+           breaks=seq(-0.6,0.6,0.2),
+           legend_breaks = c(-0.6,-0.3, 0, 0.3,0.6),
+           legend_labels = c("-0.6","-0.3","0", "0.3", "0.6"),
+           number_color = "black")
+
+}
+
+
 
 
 

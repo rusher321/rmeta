@@ -15,7 +15,9 @@ Imports:
   igraph,
   Matrix,
   metafor,
-  glmnet
+  glmnet,
+  NbClust,
+  reshape2
 Suggests:
 Description: A R package for my daily work
 License: GPL

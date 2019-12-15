@@ -39,7 +39,7 @@ matchpairID <- function(configdat, ID, Time){
 mywilcox_2t <- function(datamatrix, configdata, Time2, ratio="zero",...){
 
   # to sort the data
-  config <- matchID(configdata, ...)
+  config <- matchpairID(configdata, ...)
   data <- datamatrix[rownames(config), ,drop=F]
   # to analysis
 
@@ -114,3 +114,95 @@ comparePair <- function(data, config, group, ...){
 
 
 }
+
+
+
+#' kwmeta
+#'
+#' @param pr , dataframe
+#' @param config , dataframe
+#'
+#' @return
+#' @export
+#'
+#' @examples
+kwmeta <- function(pr, config){
+
+  # set the alpha
+  alpha <- 0.05  # 0.05
+  # match names of files
+  inter <- intersect(rownames(config), rownames(pr))
+  pr <- t(pr[inter, ])
+  config <-config[inter,,drop=F]
+
+  sum_name <- sum(ifelse(rownames(config)==colnames(pr),1,0))
+  if(sum_name==nrow(config)){print ("All sample matched")}
+  print(paste0("the sample number is ",length(inter)))
+
+  num <- nrow(pr)
+  fr <- as.factor(config[, 1])
+  group <- levels(fr)
+  print(group)
+  #output
+  len <- length(group)
+  num2 <- len*len/2+3.5*len + 2
+  out <- matrix(NA, num, num2)
+
+  ktp <- apply(pr, 1, function(x){kruskal.test(x ~ fr)$p.value})
+  #post hoc dunn test
+  library(PMCMR)
+  for (i in 1:num) {
+    pr1 <- as.numeric(pr[i,])
+    index <- is.na(pr1)
+    pr1 <- pr1[!index]
+    fr1 <- fr[!index]
+    rk  <- rank(pr1)
+    res <- c(ktp[i], tapply(pr1, fr1, median),tapply(pr1,fr1,mean), tapply(pr1>0, fr1,mean))
+    dtp <- posthoc.kruskal.dunn.test(pr1, fr1, p.adjust.method = "BH")$p.value
+    dtp <- cbind(dtp, rep(NA, len - 1))
+    dtp <- rbind(rep(NA, len), dtp)
+    dtp[upper.tri(dtp)] <- t(dtp)[upper.tri(dtp)]
+    rownames(dtp)[1] <- colnames(dtp)[1]
+    colnames(dtp)[len] <- rownames(dtp)[len]
+
+    mean_rank <- tapply(rank(pr1),fr1,mean)
+    res <- c(res,dtp[lower.tri(dtp)], mean_rank)
+    #
+    conclude <- rep(0,2*len-1)
+    or <- order(mean_rank)
+    conclude[2*(1:len)-1] <- group[or]
+    op <- rep(1,len-1)
+    for(j in 1:(len-1)){op[j] <- dtp[or[j],or[j+1]]}
+    symbol <- rep("=",len-1)
+    symbol[!is.na(op) & op <= alpha] <- "<"
+    symbol[is.na(op) | op == 1] <- "<=>"
+    for(x in 1:(len-1)){
+      if(symbol[x]=="<"){
+        p_tmp <- c()
+        for(y in 1:x){
+          for(z in (x+1):len){
+            p_tmp <- c(p_tmp,dtp[or[y],or[z]])
+          }
+        }
+        if(any(p_tmp>0.05)){symbol[x] <- "="}
+      }
+    }
+
+    conclude[(1:(len - 1)) * 2] <- symbol
+    res <- c(res, paste(conclude, collapse = " "))
+    if(length(res)==ncol(out)){out[i, ] <- res}else{print (res)}
+  }
+  rownames(out) <- rownames(pr)
+  cn <- c("kw.p", paste("median", group[1:len], sep = "_"))
+  cn <- c(cn,paste("mean", group[1:len], sep = "_"))
+  cn <- c(cn, paste("or", group[1:len], sep = "_"))
+  cn <- c(cn, paste0("p", "_", group[row(dtp)[lower.tri(dtp)]], "_", group[col(dtp)[lower.tri(dtp)]]))
+  cn <- c(cn, paste("mean_rank",group[1:len], sep = "_"))
+  cn <- c(cn, "nearby")
+  colnames(out) <- cn
+
+  return(as.data.frame(out, check.names=F))
+}
+
+
+

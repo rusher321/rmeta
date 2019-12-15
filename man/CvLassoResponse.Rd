@@ -5,14 +5,24 @@
 \title{CvLassoResponse
 select feature using lasso method , to continous data}
 \usage{
-CvLassoResponse(tag, dataset1, dataset2, transformM = "IQN")
+CvLassoResponse(
+  tag,
+  dataset1,
+  dataset2,
+  transformM = "IQN",
+  normalization = NULL
+)
 }
 \arguments{
 \item{tag}{, reponse name}
 
 \item{dataset1}{, phenotype or response dataset}
 
-\item{dataset2}{,}
+\item{dataset2}{, microbome data}
+
+\item{transformM, }{microbome transform method}
+
+\item{normalization, }{metadata trasform method}
 }
 \value{
 

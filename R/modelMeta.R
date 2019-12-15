@@ -584,41 +584,50 @@ CvLassomulti <- function(metadata , dataset, response, feturetop=NULL){
 #' select feature using lasso method , to continous data
 #' @param tag , reponse name
 #' @param dataset1 , phenotype or response dataset
-#' @param dataset2 ,
+#' @param dataset2 , microbome data
+#' @param transformM, microbome transform method
+#' @param normalization, metadata trasform method
 #'
 #' @return
 #' @export
 #'
 #' @examples
-CvLassoResponse <- function(tag, dataset1, dataset2, transformM = "IQN"){
+CvLassoResponse <- function(tag, dataset1, dataset2, transformM = "IQN",
+                            normalization=NULL){
   # combind data
   id <- intersect(rownames(dataset1), rownames(dataset2))
   print(paste0("the sample size is ", length(id)))
-  mdat <- data.frame(cbind(dataset1[id, tag, drop =F] , dataset2[id, ]))
+
+  # to transform the data
+  tmp <- dataset2[id, ]
+  invt <- function(x){qnorm((rank(x,na.last="keep")-0.5)/sum(!is.na(x)))}
+  AST <- function(x) {return(sign(x) * asin(sqrt(abs(x))))}
+
+  if(transformM == "IQN"){
+    mdat <- as.data.frame(apply(tmp, 2, invt))
+  }else if(transformM == "AST"){
+    mdat <- as.data.frame(apply(tmp, 2, AST))
+  }else{
+    mdat <- tmp
+  }
+  if(is.null(normalization)){
+    mdat2 <- data.frame(cbind(dataset1[id, tag, drop =F] , mdat))
+  }else if(normalization=="IQN"){
+    mdat2 <- data.frame(tmpvar <- invt(dataset1[id, tag, drop =F]) , mdat)
+  }else if(normalization=="scale"){
+    mdat2 <- data.frame(tmpvar <- scale(dataset1[id, tag, drop =F]) , mdat)
+  }
   # rm the na row
-  mdat <- mdat[!is.na(mdat[,1]), ]
-  if(nrow(dat) < 10){
+  mdat2 <- mdat2[!is.na(mdat2[,1]), ]
+  if(nrow(mdat2) < 10){
     return(NULL)
   }else{
 
-  #　to tranform the data
-  #  inverse-quantile normalized
-  mdat2 <- as.data.frame(model.matrix(~., mdat))
-  if(transformM == "IQN"){
-    invt <- function(x){qnorm((rank(x,na.last="keep")-0.5)/sum(!is.na(x)))}
-    mdat3 <- as.data.frame(apply(mdat2, 2, invt))
-  }else if(transforM == "AST"){
-    AST <- function(x) {return(sign(x) * asin(sqrt(abs(x))))}
-    mdat3 <- as.data.frame(apply(mdat2, 2, AST))
-  }else{
-    mdat3 <- mdat2
-  }
-
   # select feature
   library(glmnet)
-  set.seed(123)
-  lasso <- cv.glmnet(x=as.matrix(mdat3[,-c(1:2)]),
-                     y=mdat3[,2],
+  # set.seed(123)
+  lasso <- cv.glmnet(x=as.matrix(mdat2[,-1]),
+                     y=mdat2[,1],
                      family='gaussian',
                      nfolds = 10,
                      alpha = 1,
@@ -633,10 +642,9 @@ CvLassoResponse <- function(tag, dataset1, dataset2, transformM = "IQN"){
   if(nrow(lasso.mk) == 0){
     return(NULL)
   }else{
-    data_all <- mdat3 %>% dplyr::select(tag, lasso.mk$Type)
+    data_all <- mdat2 %>% dplyr::select(tag, lasso.mk$Type)
     # cross validation of feature
     library(caret)
-    set.seed(123)
     method <- "glm";
     num <- nrow(data_all)
     folds <- createFolds(y=data_all[,1], k=num )
@@ -674,62 +682,68 @@ CvLassoResponse <- function(tag, dataset1, dataset2, transformM = "IQN"){
 
 # summary the result
 
-summary_pred <- function(response, datalist, dataname, responsename, plotname){
+
+
+#' summaryCvlasso
+#' summary n repeat cvresponse result
+#' @param response
+#' @param datalist
+#' @param dataname
+#' @param responsename
+#' @param nrepeat
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
+summaryCvlasso <- function(response, datalist, dataname, responsename,
+                           nrepeat,...){
   # need the libray
   library(reshape)
   library(pheatmap)
   library(glmnet)
+  Rresultlist <- list()
+  featurelist <- list()
 
+  for(n in 1:nrepeat){
   # generate the result
-  out <- data.frame(True = 1, Predict = 1, type1 = "", type2 = "")
-  out2 <- data.frame(Type = "", Score = 1, type1 = "", type2 = "")
+    out <- data.frame(True = 1, Predict = 1, type1 = "", type2 = "")
+    out2 <- data.frame(Type = "", Score = 1, type1 = "", type2 = "")
 
-  Rresult <- matrix(NA, nrow=length(responsename), ncol=length(datalist))
-  colnames(Rresult) <-  dataname
-  rownames(Rresult) <- responsename
+    Rresult <- matrix(NA, nrow=length(responsename), ncol=length(datalist))
+    colnames(Rresult) <-  dataname
+    rownames(Rresult) <- responsename
 
-  for(i in 1:length(responsename)){
-    for(j in 1:length(dataname)){
-      print(j)
-      res <- CvLassoCluster(responsename[i], dataset1 = response, dataset2 = datalist[[j]])
-      if(is.null(res)){
-        next
-        Rresult[i, j] <- NA
-      }else{
-        res[[1]]$type1 <- rep(responsename[i], nrow(res[[1]]))
-        res[[1]]$type2 <- rep(dataname[j], nrow(res[[1]]))
-        res[[2]]$type1 <- rep(responsename[i], nrow(res[[2]]))
-        res[[2]]$type2 <- rep(dataname[j], nrow(res[[2]]))
-        Rresult[i, j] <- cor.test(res[[1]][,1], res[[1]][,2], method="s")$estimate
-        out <- rbind(out, res[[1]])
-        out2 <- rbind(out2, res[[2]])
+    for(i in 1:length(responsename)){
+      for(j in 1:length(dataname)){
+        print(j)
+        res <- CvLassoResponse(responsename[i], dataset1 = response, dataset2 = datalist[[j]],...)
+        if(is.null(res)){
+          next
+          Rresult[i, j] <- NA
+        }else{
+          res[[1]]$type1 <- rep(responsename[i], nrow(res[[1]]))
+          res[[1]]$type2 <- rep(dataname[j], nrow(res[[1]]))
+          res[[2]]$type1 <- rep(responsename[i], nrow(res[[2]]))
+          res[[2]]$type2 <- rep(dataname[j], nrow(res[[2]]))
+          Rresult[i, j] <- cor.test(res[[1]][,1], res[[1]][,2], method="s")$estimate
+          out <- rbind(out, res[[1]])
+          out2 <- rbind(out2, res[[2]])
+        }
       }
     }
-  }
 
 
-  # plot the result
-  feature_plot <- out2[-1, ]
-  recast(feature_plot, Type+type2~type1) -> qdat
-  annotation_row <- as.data.frame(qdat[, "type2", drop = F])
-  rownames(annotation_row) <- paste0("test", 1:nrow(annotation_row))
-  qdat2 <- qdat[, 3:10]
-  rownames(qdat2) <- rownames(annotation_row)
-  qdat2[is.na(qdat2)] <- 0
-  qdat2[qdat2<0] <- -1
-  qdat2[qdat2>0] <- 1
+    # plot the result
+    feature_plot <- out2[-1, ]
+    recast(feature_plot, Type+type2~type1) -> qdat
 
-  # remove the only once
-  index <- apply(abs(qdat2), 1, function(x){sum(x)>=2})
-  annotation_row <- annotation_row[index,, drop=F]
-  qdat3 <- as.data.frame(qdat2[index, ])
+    Rresultlist[[n]] <- Rresult
+    featurelist[[n]] <- qdat
+    }
 
-  pdf(paste0(plotname, ".feature.lasso.pdf"), width = 20, height = 12)
-  pheatmap(t(qdat3), labels_col  = qdat$Type[index], cellheight = 8 , cellwidth = 8,legend = F,
-           annotation_col = annotation_row)
-  dev.off()
-
-  return(Rresult)
+  return(list(Rresultlist, featurelist))
 }
 
 
