@@ -108,7 +108,7 @@ comparePair <- function(data, config, group, ...){
     return(out)
   }else{
 
-    res <- mywilcox_2t(data, config, ...)
+    out <- mywilcox_2t(data, config, ...)
     return(out)
   }
 

@@ -43,11 +43,11 @@ splitMetaphlan2 <- function(data, prefix){
 getMetahlan2rank <- function(name){
 
   # get the metaphlan2 rank
-  a <- name[grep("s__", rownames(anme))]
+  a <- name[grep("s__", name)]
   b <- a[-grep("t__", a)]
   c <- unlist(sapply(b, function(x) {strsplit(x, split = "\\|")}))
   d <- as.vector(c)
-  e <- matrix(tmp[,1], ncol = 7, byrow = T)
+  e <- matrix(d, ncol = 7, byrow = T)
 
   return(e)
 

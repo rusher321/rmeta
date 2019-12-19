@@ -17,7 +17,8 @@ Imports:
   metafor,
   glmnet,
   NbClust,
-  reshape2
+  reshape2,
+  sjstats
 Suggests:
 Description: A R package for my daily work
 License: GPL
