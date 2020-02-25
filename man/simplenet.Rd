@@ -4,7 +4,7 @@
 \alias{simplenet}
 \title{simpleNet}
 \usage{
-simplenet(adjmatrix, data, main, layout = "layout.circle")
+simplenet(adjmatrix, main, ...)
 }
 \arguments{
 \item{layout}{}

@@ -42,7 +42,7 @@ sparccNet <- function(dat, cutoff, main, layout = "layout.circle"){
   # library(SpiecEasi)
   datRenorm <- round(renorm(dat)*10^5)
   basesparcc <- sparcc(datRenorm)
-  graph <- sparcc$Cor
+  graph <- basesparcc$Cor
   num.row <- nrow(graph)
 
   # tran the corelation to adj matrox
@@ -103,7 +103,8 @@ pairNet <- function(Cor1, Cor2, cutoff, species){
   which(retainbac2 == species) -> speindex2
   retainnet2[-speindex2, -speindex2] <- 0
   retainnet2[speindex2, speindex2] <- 0
-  rownames(retainnet2)[speindex] <- colnames(retainnet2)[speindex] <- paste0(species,"_C2")
+
+  rownames(retainnet2)[speindex2] <- colnames(retainnet2)[speindex2] <- paste0(species,"_C2")
   retainbac2[speindex2] <- paste0(species,"_C2")
   # combine the two network
 
@@ -112,12 +113,12 @@ pairNet <- function(Cor1, Cor2, cutoff, species){
   rownames(out) <- colnames(out) <- comBac
 
   # input the corresponde value
-  which(comBac %in% retainbac) -> netindex1
+  pmatch(retainbac, comBac) -> netindex1
   netindex1[speindex] -> netspindex1
   out[netindex1, netspindex1] <- retainnet[, speindex]
   out[netspindex1, netindex1] <- retainnet[speindex, ]
 
-  which(comBac %in% retainbac2) -> netindex2
+  pmatch(retainbac2, comBac) -> netindex2
   netindex2[speindex2] -> netspindex2
   out[netindex2, netspindex2] <- retainnet2[, speindex2]
   out[netspindex2, netindex2] <- retainnet2[speindex2, ]
@@ -138,27 +139,34 @@ pairNet <- function(Cor1, Cor2, cutoff, species){
 #'
 #' @examples
 #'
-simplenet <- function(adjmatrix, data, main, layout = "layout.circle"){
+simplenet <- function(adjmatrix, main,...){
   #library(igraph)
   #library(Matrix)
 
   graph <- adjmatrix
   num.row <- nrow(graph)
   igraph <- adj2igraph(Matrix(graph, sparse=TRUE))
-  vsize.g1 <- rowMeans(clr(data, 2))+6
+  #vsize.g1 <- rowMeans(clr(data, 2))+6
   # set edge color，postive correlation 设定为red, negative correlation设定为blue
   igraph.weight = E(igraph)$weight
   E.color = igraph.weight
   E.color = ifelse(E.color>0, "#fc9272",ifelse(E.color<0, "#31a354","grey"))
   E(igraph)$color = as.character(E.color)
+  # set node size
+  index <- grep(main, colnames(adjmatrix))
+  nodesize <- rep(7, num.row)
+  nodesize[index] <- 15
+  V(igraph)$size <- nodesize
 
   # add the edge width
   E(igraph)$width = abs(igraph.weight)*4
   # add the node color
   #V(igraph)$color <- "#636363"
-  plot(igraph,layout=layout, vertex.size=vsize.g1,
-       vertex.label=colnames(data), vertex.label.cex = .6,
+  plot(igraph,
+       vertex.label=colnames(adjmatrix), vertex.label.cex = .6,
        vertex.label.color = "black",
-       main = main )
+       vertex.color="lightsteelblue2",
+       vertex.frame.color="gray",
+       main = main ,...)
 
 }

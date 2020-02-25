@@ -381,6 +381,46 @@ corPlot <- function(corres , cutoff, adjust, tr){
 
 
 
+# centor compare
+
+#' centroComp
+#' compare the center distance between groups
+#' @param pro metagenome profile ,row is sample ID
+#' @param method distance method
+#' @param config group info
+#' @param color set group color in plot
+#'
+#' @return
+#' @export
+#'
+#' @examples
+centorComp <- function(pro, method , config, color){
+
+  id <- intersect(rownames(pro), rownames(config))
+  pro <- pro[id,]
+  config <- config[id, ]
+  # compute the distance
+
+  prodis <- vegan::vegdist(pro, method = method)
+  mod <- betadisper(prodis, config)
+
+  qdata <- data.frame(dis = mod$distance, label = config)
+
+  # plot
+  my_comparisons = list()
+  num <- combn(length(unique(config)),2)
+  for(i in 1:ncol(num)){my_comparisons[[i]] <- num[,i]}
+
+  p <- ggboxplot(qdata, x="label", y = "dis", color = "label" ,add = "jitter",alpha=0.6,size = 0.5)+
+    stat_compare_means(comparisons = my_comparisons)+
+    scale_color_manual(values=color)+
+    theme(axis.text.x = element_text(vjust = 0.5, hjust = 0.5, angle = 45),legend.position = "none")+xlab("")+
+    ylab("Distance to centroid")
+
+  return(p)
+
+}
+
 
 
 
