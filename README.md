@@ -17,7 +17,7 @@ Usage
 Support & Bug Reports
 ----------------------
 
-Please log an issue on (github issue)[https://github.com/rusher321/rmeta/issues]
+Please log an issue on [github issue](https://github.com/rusher321/rmeta/issues)
 
 You can email the  developers directly at `renhuahuid@genomics.cn`
 
