@@ -1,7 +1,7 @@
 rmeta
 =======
 
-The idea of this package is that manage the simple functions generated in daily work 
+The idea of this package is that manage the simple functions generated in my daily work 
 
 Installation
 ------------
