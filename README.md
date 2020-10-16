@@ -19,7 +19,7 @@ Support & Bug Reports
 
 Please log an issue on [github issue](https://github.com/rusher321/rmeta/issues)
 
-You can email the  developers directly at `renhuahuid@genomics.cn`
+You can email the  developers directly at `renhuahui@genomics.cn`
 
 Requirements
 --------------------
@@ -31,7 +31,7 @@ Requirements
   + compare between group (case/control, base/anti, composition data compare)
   + custom model 
   + network analysis
-- package,可以基于metaphaln2 和huamnn2 的数据出一个自动的报告
+- package
 
 # License
 
