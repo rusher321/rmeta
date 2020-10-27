@@ -1,0 +1,70 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+
+1. load data
+```{r}
+raw_count <- read.table("../raw_data/rwa_data.txt", row.names = 1)
+genus <- read.table("../raw_data/bjt2d.genus.pro.profile", header = T, 
+                    row.names = 1, sep = "\t", check.names = F)
+phe <- read.csv("../raw_data/bjt2d.config.csv", header = T, 
+                row.names = 1)
+
+acar <- phe[phe$group == 1 & phe$Time != "w12", ]
+genus_acar <- genus[, rownames(acar)]
+raw_acar <- raw_count[rownames(acar), ,drop=F]
+genus_acart <- round(t(t(genus_acar)*raw_acar[,1]))
+
+```
+
+
+
+2. Wilcox+TSS 
+
+```{r}
+library(rmeta)
+config <- acar[, "Time", drop=F]
+config$Time <- droplevels(config$Time)
+pr <- genus_acar[rownames(out$feature.table), ]
+kwres <- kwmeta(pr = t(pr), config = config)
+
+write.csv(kwres, "kw.csv", quote = F)
+
+```
+
+
+
+3. ANCOM_BC
+
+```{r}
+feature.table = genus_acart;
+meta_data <- acar
+meta_data$sample <- rownames(acar)
+sample.var = "sample"; 
+group.var = "Time"; 
+zero.cut = 0.90; 
+lib.cut = 1000; neg.lb = TRUE
+pre.process = feature_table_pre_process(feature.table, meta_data, sample.var, 
+                                        group.var, zero.cut, lib.cut, neg.lb)
+
+
+grp.name = pre.process$group.name
+grp.ind = pre.process$group.ind
+adj.method = "bonferroni"
+tol.EM = 1e-5; max.iterNum = 100; perNum = 1000; alpha = 0.05
+struc.zero <- pre.process$structure.zeros
+
+
+out = ANCOM_BC(pre.process$feature.table, grp.name, grp.ind, struc.zero,
+               adj.method, tol.EM, max.iterNum, perNum, alpha)
+
+res = cbind(taxon = rownames(out$feature.table), out$res)
+write.csv(res, "ancombc_two_group.csv", quote =F)
+
+
+
+
+
+```

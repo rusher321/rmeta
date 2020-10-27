@@ -201,7 +201,8 @@ nmdsFig <- function(data, method = "bray", config){
   maxY <- max(dat2[,2])
 
   plot(0,0, main = "Pcoa", type = "n",
-       xlab=paste("Pco1 (",var1,"%)"),ylab=paste("Pco2 (",var2,"%)"),
+       xlab= "NMDS1",
+       ylab= "NMDS2",
        xlim=c(minX-5^floor(log10(abs(minX))),maxX+5^floor(log10(abs(maxX)))),
        ylim=c(minY-5^floor(log10(abs(minY))),maxY+5^floor(log10(abs(maxY)))),
        frame=TRUE, cex=0.5, add=T)

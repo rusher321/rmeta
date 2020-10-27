@@ -25,6 +25,6 @@ License: GPL
 URL: https://github.com/rusher321/rmeta
 BugReports: https://github.com/rusher321/rmeta/issues
 VignetteBuilder: knitr
-RoxygenNote: 7.0.0
+RoxygenNote: 7.1.1
 NeedsCompilation: no
 Packaged: 2019-10-16 09:53:27 UTC; pz
