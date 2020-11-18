@@ -60,3 +60,32 @@ mergeP <- function(dat1, dat2){
   return(out)
 
 }
+
+
+
+#' Combine the file list
+#'
+#' @param filelist
+#'
+#' @return
+#' @export
+#'
+#' @examples
+combindfile <- function(filelist){
+
+  tmp <- filelist[[1]]
+  tmp$name <- rownames(tmp)
+  # name
+  for(i in 2:length(filelist)){
+
+    file2 <- filelist[[i]]
+    file2$name <- rownames(filelist[[i]])
+    tmp <- merge(tmp, file2, by="name", all=T)
+
+
+  }
+  rownames(tmp) <- tmp$name
+  out <- tmp[, -which(colnames(tmp)=="name")]
+  out[is.na(out)] <- 0
+  return(out)
+}

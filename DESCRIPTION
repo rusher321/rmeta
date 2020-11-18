@@ -18,7 +18,8 @@ Imports:
   glmnet,
   NbClust,
   reshape2,
-  sjstats
+  sjstats,
+  phyloseq
 Suggests:
 Description: A R package for my daily work
 License: GPL

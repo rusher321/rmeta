@@ -217,6 +217,32 @@ tssMeta <- function(data){
 
 
 
+#' Based-rank Inverse Normal Transformation
+#' The detail inf is (here)[https://cran.r-project.org/web/packages/RNOmni/vignettes/RNOmni.html]
+#'
+#' @param u, vector
+#' @param k, 0<= k <=0.5
+#'
+#' @return
+#' out, vector transformed
+#' @export
+#'
+#' @examples
+#' x <- c(0.1, 0,3, 0.5 , NA)
+#' RankINT(x)
+RankINT <- function (u, k = 0.375)
+{
+  if (!is.vector(u)) {
+    stop("A numeric vector is expected for u.")
+  }
+  if ((k < 0) || (k > 0.5)) {
+    stop("Select the offset within the interval (0,0.5).")
+  }
+  n <- sum(!is.na(u))
+  #r <- rank(u)
+  out <- qnorm((rank(r, na.last = "keep") - k)/(n - 2 * k + 1))
+  return(out)
+}
 
 
 
