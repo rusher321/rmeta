@@ -1,20 +1,22 @@
 #' @title feature_table_pre_process
 #'
-#' This function is from [here] (https://github.com/FrederickHuangLin/ANCOM)
+#' @description  This function is from
+#' \href{https://github.com/FrederickHuangLin/ANCOM}{ANCOM}
 #' @param feature_table ,feature table should be a matrix/data.frame with each feature in rows and sample in columns.
 #' @param meta_data,  Metadata should be a matrix/data.frame containing the sample identifier.
 #' @param sample_var, sample ID name
 #' @param group_var, the group to compare
-#' @param out_cut,
+#' @param out_cut, alpha
 #' @param zero_cut, occurrance rate
 #' @param lib_cut, library size
-#' @param neg_lb
+#' @param neg_lb, logistic
+#' @param count, logistic
 #'
 #' @return
 #' @export
 #'
 #' @examples
-feature_table_pre_process = function(feature_table, meta_data, sample_var, group_var = NULL,
+feature_table_pre_process <- function(feature_table, meta_data, sample_var, group_var = NULL,
                                      out_cut = 0.05, zero_cut = 0.90, lib_cut, neg_lb, count = F){
 
   feature_table = data.frame(feature_table, check.names = FALSE)
@@ -158,7 +160,7 @@ feature_table_pre_process = function(feature_table, meta_data, sample_var, group
 #' @export
 #'
 #' @examples
-ANCOM = function(feature_table, meta_data, struc_zero = NULL, main_var, p_adj_method = "BH",
+ANCOM <- function(feature_table, meta_data, struc_zero = NULL, main_var, p_adj_method = "BH",
                  alpha = 0.05, adj_formula = NULL, rand_formula = NULL, paired, pid, count,...){
   # OTU table transformation:
   # (1) Discard taxa with structural zeros (if any); (2) Add pseudocount (1) and take logarithm.
@@ -285,7 +287,7 @@ ANCOM = function(feature_table, meta_data, struc_zero = NULL, main_var, p_adj_me
 
 
   # Organize outputs
-  out_comp = data.frame(taxa_id, W, Q, eff_size, row.names = NULL, check.names = FALSE)
+  out_comp = data.frame(taxa_id, W, Q, row.names = NULL, check.names = FALSE)
   # Declare a taxon to be differentially abundant based on the quantile of W statistic.
   # We perform (n_taxa - 1) hypothesis testings on each taxon, so the maximum number of rejections is (n_taxa - 1).
   out_comp = out_comp%>%mutate(detected_0.9 = ifelse(W > 0.9 * (n_taxa -1), TRUE, FALSE),

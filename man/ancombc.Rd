@@ -4,9 +4,7 @@
 \alias{ancombc}
 \alias{ancom}
 \title{Differential abundance (DA) analysis for
-microbial absolute abundance data.
-
-This function from (here)[https://github.com/FrederickHuangLin/ANCOMBC]}
+microbial absolute abundance data.}
 \usage{
 ancombc(
   phyloseq,

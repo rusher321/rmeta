@@ -2,18 +2,18 @@
 % Please edit documentation in R/ancom2.R
 \name{feature_table_pre_process}
 \alias{feature_table_pre_process}
-\title{feature_table_pre_process
-
-This function is from [here] (https://github.com/FrederickHuangLin/ANCOM)}
+\title{feature_table_pre_process}
 \usage{
 feature_table_pre_process(
-  feature.table,
-  meta.data,
-  sample.var,
-  group.var,
-  zero.cut = 0.9,
-  lib.cut = 1000,
-  neg.lb
+  feature_table,
+  meta_data,
+  sample_var,
+  group_var = NULL,
+  out_cut = 0.05,
+  zero_cut = 0.9,
+  lib_cut,
+  neg_lb,
+  count = F
 )
 }
 \arguments{
@@ -25,17 +25,20 @@ feature_table_pre_process(
 
 \item{group_var, }{the group to compare}
 
+\item{out_cut, }{alpha}
+
 \item{zero_cut, }{occurrance rate}
 
 \item{lib_cut, }{library size}
 
-\item{neg_lb}{}
+\item{neg_lb, }{logistic}
+
+\item{count, }{logistic}
 }
 \value{
 
 }
 \description{
-feature_table_pre_process
-
-This function is from [here] (https://github.com/FrederickHuangLin/ANCOM)
+This function is from
+\href{https://github.com/FrederickHuangLin/ANCOM}{ANCOM}
 }

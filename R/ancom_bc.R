@@ -1,7 +1,6 @@
 #' @title Differential abundance (DA) analysis for
 #' microbial absolute abundance data.
 #'
-#' This function from (here)[https://github.com/FrederickHuangLin/ANCOMBC]
 #' @aliases ancom
 #'
 #' @description Determine taxa whose absolute abundances, per unit volume, of
