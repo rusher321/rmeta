@@ -149,10 +149,7 @@
 #'
 #' @author Huang Lin
 #'
-#' @references
-#' \insertRef{kaul2017analysis}{ANCOMBC}
-#'
-#' \insertRef{lin2020analysis}{ANCOMBC}
+#
 #'
 #' @import stats
 #' @import phyloseq

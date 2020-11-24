@@ -183,11 +183,6 @@ res = out$res
 res_global = out$res_global
 
 }
-\references{
-\insertRef{kaul2017analysis}{ANCOMBC}
-
-\insertRef{lin2020analysis}{ANCOMBC}
-}
 \author{
 Huang Lin
 }
