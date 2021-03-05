@@ -5,14 +5,16 @@
 \title{matchpair ID
 to match the sample ID for pair wilcox test}
 \usage{
-matchpairID(configdat, ID, Time)
+matchpairID(configdat, ID, Time, num = 2)
 }
 \arguments{
-\item{configdat}{,dataframe}
+\item{configdat}{, dataframe}
 
-\item{ID}{, sample ID}
+\item{ID}{, char: sample ID}
 
-\item{Time}{, time point}
+\item{Time}{, char: time point}
+
+\item{num, }{numberic}
 }
 \value{
 dataframe

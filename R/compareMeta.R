@@ -3,17 +3,18 @@
 
 #' matchpair ID
 #' to match the sample ID for pair wilcox test
-#' @param configdat ,dataframe
-#' @param ID , sample ID
-#' @param Time , time point
+#' @param configdat , dataframe
+#' @param ID , char: sample ID
+#' @param Time , char: time point
+#' @param num, numberic
 #'
 #' @return dataframe
 #' @export
 #'
 #' @examples
-matchpairID <- function(configdat, ID, Time){
+matchpairID <- function(configdat, ID, Time, num = 2){
 
- names(table(configdat[,ID]))[table(configdat[, ID])==2] -> matchname
+ names(table(configdat[,ID]))[table(configdat[, ID]) == num] -> matchname
  configdat[!is.na(match(configdat[, ID], matchname)),] -> outconfig
  # sort by ID
  outconfig[order(outconfig[,ID]), ] -> matchdat

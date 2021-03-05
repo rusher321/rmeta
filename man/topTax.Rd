@@ -5,7 +5,14 @@
 \title{topTax
 plot the high abundance tax}
 \usage{
-topTax(metadata, K = 20, rmUnclass = F)
+topTax(
+  metadata,
+  K = 20,
+  rmUnclass = F,
+  sample_order = F,
+  tax_order = F,
+  tax_colour = F
+)
 }
 \arguments{
 \item{metadata}{, tax profile row is tax col is sample}
@@ -13,6 +20,12 @@ topTax(metadata, K = 20, rmUnclass = F)
 \item{K}{, top number}
 
 \item{rmUnclass}{, if to remove the unclass tax}
+
+\item{sample_order, }{vector of sample id}
+
+\item{tax_order, }{vector of taxnomy}
+
+\item{tax_colour, }{vector of colour}
 }
 \value{
 figure

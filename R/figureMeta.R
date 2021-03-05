@@ -254,48 +254,67 @@ nmdsFigEx <- function(data, method = "bray", config, color = c("#66C2A5","#E78AC
 #' @param metadata , tax profile row is tax col is sample
 #' @param K , top number
 #' @param rmUnclass , if to remove the unclass tax
-#'
+#' @param sample_order, vector of sample id
+#' @param tax_order, vector of taxnomy
+#' @param tax_colour, vector of colour
 #' @return figure
 #' @export
 #'
 #' @examples
-topTax <- function(metadata, K = 20, rmUnclass = F){
+topTax <- function(metadata, K = 20, rmUnclass = F, sample_order =F ,
+                   tax_order = F, tax_colour=F){
 
-  # generate the top20 tax profile
+  # generate the top tax profile
   if(rmUnclass){
     # rm the unclass & renorm
     unclassindex <- which(rownames(metadata) %in% "unclassed")
     metadata <- metadata[-unclassindex, ]
     metadata <- apply(metadata, 2, function(x){y <- x/sum(x); return(y)})
   }
+
   # order the tax
-  top <- names(head(sort(apply(metadata , 1, mean), decreasing = T), K))
-  topdata <- metadata[top, ]
-  lessdata <- metadata[-which(rownames(metadata) %in% top), ]
-  otherdata <- t(data.frame(apply(lessdata, 2, sum)))
-  rownames(otherdata) <- "Others"
-  qdat <- rbind(topdata, otherdata)
-  # plot the result
+  if(tax_order){
+    data_sub <- metadata[tax_order, ]
+    lessdata <- metadata[-which(rownames(metadata) %in% tax_order), ]
+    otherdata <- t(data.frame(apply(lessdata, 2, sum)))
+    rownames(otherdata) <- "Others"
+    qdat <- rbind(topdata, otherdata)
+  }else{
+    top <- names(head(sort(apply(metadata , 1, mean), decreasing = T), K))
+    topdata <- metadata[top, ]
+    lessdata <- metadata[-which(rownames(metadata) %in% top), ]
+    otherdata <- t(data.frame(apply(lessdata, 2, sum)))
+    rownames(otherdata) <- "Others"
+    qdat <- rbind(topdata, otherdata)
+  }
   naOrder <- rownames(qdat)
-  idOrder <- colnames(qdat)[order(qdat[1,], decreasing = T)]
+
+  # order the sample
+  if(sample_order){
+    idOrder = sample_order
+  }else{
+    idOrder <- colnames(qdat)[order(qdat[1,], decreasing = T)]
+  }
+  qdat <- as.data.frame(qdat, check.names=F)
   qdat$sample <- rownames(qdat)
   qdat2 <- melt(qdat)
   colnames(qdat2) <- c("Tax", "Sample", "value")
   qdat2$Tax <- factor(qdat2$Tax, levels = rev(naOrder))
   qdat2$Sample <- factor(qdat2$Sample, levels = idOrder)
   # ggplot
-  ggplot(qdat2, aes(Sample, value, fill=Tax))+
+  p = ggplot(qdat2, aes(Sample, value, fill=Tax))+
     geom_bar(stat = "identity")+
     geom_hline(yintercept = 1)+
     theme_classic()+
-    #mytheme+
     theme(axis.text.x = element_blank(),
-          #legend.position = c(0.01,0.99),
-          #legend.justification = c(0,1),
           axis.ticks = element_blank())+
     xlab("")+ylab("Relative Abundance")+
     scale_y_continuous(expand = c(0,0),breaks = c(0,.2,.4,.6,.8,1))
+  if(!tax_colour){
+    p+scale_fill_manual(values = tax_colour)
+  }
 
+  return(p)
 }
 
 
@@ -417,6 +436,359 @@ centorComp <- function(pro, method , config, color){
     scale_color_manual(values=color)+
     theme(axis.text.x = element_text(vjust = 0.5, hjust = 0.5, angle = 45),legend.position = "none")+xlab("")+
     ylab("Distance to centroid")
+
+  return(p)
+
+}
+
+
+#' correlation between pairwise
+#'
+#' @param data
+#' @param method
+#' @param cor_matrix
+#' @param nbreaks
+#' @param digits
+#' @param name
+#' @param low
+#' @param mid
+#' @param high
+#' @param midpoint
+#' @param palette
+#' @param geom
+#' @param min_size
+#' @param max_size
+#' @param label
+#' @param label_alpha
+#' @param label_color
+#' @param label_round
+#' @param label_size
+#' @param limits
+#' @param drop
+#' @param layout.exp
+#' @param legend.position
+#' @param legend.size
+#' @param ...
+#'
+#' @return
+#' @export
+#'
+#' @examples
+ggcorr <- function(
+  data,
+  method = c("pairwise", "pearson"),
+  cor_matrix = NULL,
+  nbreaks = NULL,
+  digits = 2,
+  name = "",
+  low = "#3B9AB2",
+  mid = "#EEEEEE",
+  high = "#F21A00",
+  midpoint = 0,
+  palette = NULL,
+  geom = "tile",
+  min_size = 2,
+  max_size = 6,
+  label = FALSE,
+  label_alpha = FALSE,
+  label_color = "black",
+  label_round = 1,
+  label_size = 4,
+  limits = TRUE,
+  drop = !limits,
+  layout.exp = 0,
+  legend.position = "right",
+  legend.size = 9,
+  ...) {
+
+  # -- required packages -------------------------------------------------------
+
+  require(ggplot2, quietly = TRUE)
+  require(reshape2, quietly = TRUE)
+
+  # -- check geom argument -----------------------------------------------------
+
+  if (length(geom) > 1 || !geom %in% c("blank", "circle", "text", "tile")) {
+    stop("incorrect geom value")
+  }
+
+  # -- correlation method ------------------------------------------------------
+
+  if (length(method) == 1) {
+    method = c(method, "pearson") # for backwards compatibility
+  }
+
+  # -- check data columns ------------------------------------------------------
+
+  if (!is.null(data)) {
+
+    if (!is.data.frame(data)) {
+      data = as.data.frame(data)
+    }
+
+    x = which(!sapply(data, is.numeric))
+
+    if (length(x) > 0) {
+
+      warning(paste("data in column(s)",
+                    paste0(paste0("'", names(data)[x], "'"), collapse = ", "),
+                    "are not numeric and were ignored"))
+
+      data = data[, -x ]
+
+    }
+
+  }
+
+  # -- correlation matrix ------------------------------------------------------
+
+  if (is.null(cor_matrix)) {
+    cor_matrix = cor(data, use = method[1], method = method[2])
+  }
+
+  m = cor_matrix
+  colnames(m) = rownames(m) = gsub(" ", "_", colnames(m)) # protect spaces
+
+  # -- correlation data.frame --------------------------------------------------
+
+  m = data.frame(m * lower.tri(m))
+  m$.ggally_ggcorr_row_names = rownames(m)
+  m = reshape2::melt(m, id.vars = ".ggally_ggcorr_row_names")
+  names(m) = c("x", "y", "coefficient")
+  m$coefficient[ m$coefficient == 0 ] = NA
+
+  # -- correlation quantiles ---------------------------------------------------
+
+  if (!is.null(nbreaks)) {
+
+    x = seq(-1, 1, length.out = nbreaks + 1)
+
+    if (!nbreaks %% 2) {
+      x = sort(c(x, 0))
+    }
+
+    m$breaks = cut(m$coefficient, breaks = unique(x), include.lowest = TRUE,
+                   dig.lab = digits)
+
+  }
+
+  # -- gradient midpoint -------------------------------------------------------
+
+  if (is.null(midpoint)) {
+
+    midpoint = median(m$coefficient, na.rm = TRUE)
+    message(paste("Color gradient midpoint set at median correlation to",
+                  round(midpoint, 2)))
+
+  }
+
+  # -- plot structure ----------------------------------------------------------
+
+  m$label = round(m$coefficient, label_round)
+  p = ggplot(na.omit(m), aes(x, y))
+
+  if (geom == "tile") {
+
+    if (is.null(nbreaks)) {
+
+      # -- tiles, continuous ---------------------------------------------------
+
+      p = p +
+        geom_tile(aes(fill = coefficient), color = "white")
+
+    } else {
+
+      # -- tiles, ordinal ------------------------------------------------------
+
+      p = p +
+        geom_tile(aes(fill = breaks), color = "white")
+
+    }
+
+    # -- tiles, color scale ----------------------------------------------------
+
+    if (is.null(nbreaks) && limits) {
+
+      p = p +
+        scale_fill_gradient2(name, low = low, mid = mid, high = high,
+                             midpoint = midpoint, limits = c(-1, 1))
+
+    } else if (is.null(nbreaks)) {
+
+      p = p +
+        scale_fill_gradient2(name, low = low, mid = mid, high = high,
+                             midpoint = midpoint)
+
+    } else if (is.null(palette)) {
+
+      x = colorRampPalette(c(low, mid, high))(length(levels(m$breaks)))
+
+      p = p +
+        scale_fill_manual(name, values = x, drop = drop)
+
+    } else {
+
+      p = p +
+        scale_fill_brewer(name, palette = palette, drop = drop)
+
+    }
+
+  } else if (geom == "circle") {
+
+    p = p +
+      geom_point(aes(size = abs(coefficient) * 1.25), color = "grey50") # border
+
+    if (is.null(nbreaks)) {
+
+      # -- circles, continuous -------------------------------------------------
+
+      p = p +
+        geom_point(aes(size = abs(coefficient), color = coefficient))
+
+    } else {
+
+      # -- circles, ordinal ----------------------------------------------------
+
+      p = p +
+        geom_point(aes(size = abs(coefficient), color = breaks))
+
+    }
+
+    p = p +
+      scale_size_continuous(range = c(min_size, max_size)) +
+      guides(size = FALSE)
+
+    r = list(size = (min_size + max_size) / 2)
+
+    # -- circles, color scale --------------------------------------------------
+
+    if (is.null(nbreaks) && limits) {
+
+      p = p +
+        scale_color_gradient2(name, low = low, mid = mid, high = high,
+                              midpoint = midpoint, limits = c(-1, 1))
+
+    } else if (is.null(nbreaks)) {
+
+      p = p +
+        scale_color_gradient2(name, low = low, mid = mid, high = high,
+                              midpoint = midpoint)
+
+    } else if (is.null(palette)) {
+
+      x = colorRampPalette(c(low, mid, high))(length(levels(m$breaks)))
+
+      p = p +
+        scale_color_manual(name, values = x, drop = drop) +
+        guides(color = guide_legend(override.aes = r))
+
+    } else {
+
+      p = p +
+        scale_color_brewer(name, palette = palette, drop = drop) +
+        guides(color = guide_legend(override.aes = r))
+
+    }
+
+  } else if (geom == "text") {
+
+    if (is.null(nbreaks)) {
+
+      # -- text, continuous ----------------------------------------------------
+
+      p = p +
+        geom_text(aes(label = label, color = coefficient), size = label_size)
+
+    } else {
+
+      # -- text, ordinal -------------------------------------------------------
+
+      p = p +
+        geom_text(aes(label = label, color = breaks), size = label_size)
+
+    }
+
+    # -- text, color scale ----------------------------------------------------
+
+    if (is.null(nbreaks) && limits) {
+
+      p = p +
+        scale_color_gradient2(name, low = low, mid = mid, high = high,
+                              midpoint = midpoint, limits = c(-1, 1))
+
+    } else if (is.null(nbreaks)) {
+
+      p = p +
+        scale_color_gradient2(name, low = low, mid = mid, high = high,
+                              midpoint = midpoint)
+
+    } else if (is.null(palette)) {
+
+      x = colorRampPalette(c(low, mid, high))(length(levels(m$breaks)))
+
+      p = p +
+        scale_color_manual(name, values = x, drop = drop)
+
+    } else {
+
+      p = p +
+        scale_color_brewer(name, palette = palette, drop = drop)
+
+    }
+
+  }
+
+  # -- coefficient labels ------------------------------------------------------
+
+  if (label) {
+
+    if (isTRUE(label_alpha)) {
+
+      p = p +
+        geom_text(aes(x, y, label = label, alpha = abs(coefficient)),
+                  color = label_color, size = label_size,
+                  show_guide = FALSE)
+
+    } else if (label_alpha > 0) {
+
+      p = p +
+        geom_text(aes(x, y, label = label, show_guide = FALSE),
+                  alpha = label_alpha, color = label_color, size = label_size)
+
+    } else {
+
+      p = p +
+        geom_text(aes(x, y, label = label),
+                  color = label_color, size = label_size)
+
+    }
+
+  }
+
+  # -- horizontal scale expansion ----------------------------------------------
+
+  l = levels(m$y)
+
+  if (!is.numeric(layout.exp) || layout.exp < 0) {
+    stop("incorrect layout.exp value")
+  } else if (layout.exp > 0) {
+    l = c(rep(NA, as.integer(layout.exp)), l)
+  }
+
+  p = p  +
+    geom_text(data = m[ m$x == m$y & is.na(m$coefficient), ],
+              aes(label = x), ...) +
+    scale_x_discrete(breaks = NULL, limits = l) +
+    scale_y_discrete(breaks = NULL, limits = levels(m$y)) +
+    labs(x = NULL, y = NULL) +
+    coord_equal() +
+    theme(
+      panel.background = element_blank(),
+      legend.key = element_blank(),
+      legend.position = legend.position,
+      legend.title = element_text(size = legend.size),
+      legend.text = element_text(size = legend.size)
+    )
 
   return(p)
 
