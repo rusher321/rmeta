@@ -262,7 +262,7 @@ nmdsFigEx <- function(data, method = "bray", config, color = c("#66C2A5","#E78AC
 #'
 #' @examples
 topTax <- function(metadata, K = 20, rmUnclass = F, sample_order =F ,
-                   tax_order = F, tax_colour=F){
+                   tax_order = F, tax_colour=NULL){
 
   # generate the top tax profile
   if(rmUnclass){
@@ -310,7 +310,7 @@ topTax <- function(metadata, K = 20, rmUnclass = F, sample_order =F ,
           axis.ticks = element_blank())+
     xlab("")+ylab("Relative Abundance")+
     scale_y_continuous(expand = c(0,0),breaks = c(0,.2,.4,.6,.8,1))
-  if(!tax_colour){
+  if(!is.null(tax_colour)){
     p+scale_fill_manual(values = tax_colour)
   }
 

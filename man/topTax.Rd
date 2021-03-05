@@ -11,7 +11,7 @@ topTax(
   rmUnclass = F,
   sample_order = F,
   tax_order = F,
-  tax_colour = F
+  tax_colour = NULL
 )
 }
 \arguments{
