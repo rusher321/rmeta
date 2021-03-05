@@ -261,8 +261,8 @@ nmdsFigEx <- function(data, method = "bray", config, color = c("#66C2A5","#E78AC
 #' @export
 #'
 #' @examples
-topTax <- function(metadata, K = 20, rmUnclass = F, sample_order =F ,
-                   tax_order = F, tax_colour=NULL){
+topTax <- function(metadata, K = 20, rmUnclass = F, sample_order =NULL ,
+                   tax_order = NULL, tax_colour=NULL){
 
   # generate the top tax profile
   if(rmUnclass){
@@ -273,7 +273,7 @@ topTax <- function(metadata, K = 20, rmUnclass = F, sample_order =F ,
   }
 
   # order the tax
-  if(tax_order){
+  if(!is.null(tax_order)){
     data_sub <- metadata[tax_order, ]
     lessdata <- metadata[-which(rownames(metadata) %in% tax_order), ]
     otherdata <- t(data.frame(apply(lessdata, 2, sum)))
@@ -290,7 +290,7 @@ topTax <- function(metadata, K = 20, rmUnclass = F, sample_order =F ,
   naOrder <- rownames(qdat)
 
   # order the sample
-  if(sample_order){
+  if(!is.null(sample_order)){
     idOrder = sample_order
   }else{
     idOrder <- colnames(qdat)[order(qdat[1,], decreasing = T)]

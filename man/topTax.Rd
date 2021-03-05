@@ -9,8 +9,8 @@ topTax(
   metadata,
   K = 20,
   rmUnclass = F,
-  sample_order = F,
-  tax_order = F,
+  sample_order = NULL,
+  tax_order = NULL,
   tax_colour = NULL
 )
 }
