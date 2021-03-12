@@ -279,6 +279,7 @@ topTax <- function(metadata, K = 20, rmUnclass = F, sample_order =NULL ,
     otherdata <- t(data.frame(apply(lessdata, 2, sum)))
     rownames(otherdata) <- "Others"
     qdat <- rbind(data_sub, otherdata)
+    naOrder <- c("Others", tax_order)
   }else{
     top <- names(head(sort(apply(metadata , 1, mean), decreasing = T), K))
     topdata <- metadata[top, ]
@@ -286,8 +287,9 @@ topTax <- function(metadata, K = 20, rmUnclass = F, sample_order =NULL ,
     otherdata <- t(data.frame(apply(lessdata, 2, sum)))
     rownames(otherdata) <- "Others"
     qdat <- rbind(topdata, otherdata)
+    naOrder <- rownames(qdat)
   }
-  naOrder <- rownames(qdat)
+
 
   # order the sample
   if(!is.null(sample_order)){
@@ -311,7 +313,7 @@ topTax <- function(metadata, K = 20, rmUnclass = F, sample_order =NULL ,
     xlab("")+ylab("Relative Abundance")+
     scale_y_continuous(expand = c(0,0),breaks = c(0,.2,.4,.6,.8,1))
   if(!is.null(tax_colour)){
-    p+scale_fill_manual(values = tax_colour)
+    p <- p+scale_fill_manual(values = tax_colour)
   }
 
   return(p)
