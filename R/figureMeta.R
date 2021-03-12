@@ -278,7 +278,7 @@ topTax <- function(metadata, K = 20, rmUnclass = F, sample_order =NULL ,
     lessdata <- metadata[-which(rownames(metadata) %in% tax_order), ]
     otherdata <- t(data.frame(apply(lessdata, 2, sum)))
     rownames(otherdata) <- "Others"
-    qdat <- rbind(topdata, otherdata)
+    qdat <- rbind(lessdata, otherdata)
   }else{
     top <- names(head(sort(apply(metadata , 1, mean), decreasing = T), K))
     topdata <- metadata[top, ]
