@@ -32,6 +32,44 @@ splitMetaphlan2 <- function(data, prefix){
 
 }
 
+#' split the metaphlan2 dataset
+#'
+#' @param data  , merge metaphlan2 dataset
+#' @param prefix , output name
+#'
+#' @return list, include all rank data
+#' @export
+#'
+#' @examples
+
+splitMetaphlan <- function (data, prefix) 
+{
+    
+  index <- sapply(strsplit(rownames(data), perl = T, split = "\\|"), 
+        function(x){rev(x)[1]})
+  
+    datalist <- list()
+    classify <- c("kingdom","phylum", "class", 
+        "order", "family", "genus", "species")
+    classify2 <- c("k__", "p__", "c__", "o__", "f__", "g__", "s__")
+    
+    for (i in 1:7) {
+        index2 <- grep(classify2[i], index)
+        outdat <- data[index2, ]
+        rname <- sapply(strsplit(rownames(outdat), perl = T, 
+            split = "\\|"), function(x) {
+            y <- rev(x)[1]
+            return(y)
+        })
+        rownames(outdat) <- rname
+        datalist[[i]] <- outdat
+    }
+    names(datalist) <- paste0(prefix, "_", classify[1:7])
+    return(datalist)
+}
+
+
+
 #' getMetaphlan2rank
 #' get the phylum-species rank
 #' @param name , the merge metaphlan2 rownames
